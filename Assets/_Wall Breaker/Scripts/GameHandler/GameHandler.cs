@@ -13,20 +13,20 @@ public class GameHandler : MonoBehaviour
     private void OnEnable()
     {
         BricksHandler.OnDetached += OnBrickDetached;
-        BrickWallGenerator.OnLevelComplete += OnLevelCompleted;
+        //BrickWallGenerator.OnLevelComplete += OnLevelCompleted;
     }
 
 
     private void OnDisable()
     {
         BricksHandler.OnDetached -= OnBrickDetached;
-        BrickWallGenerator.OnLevelComplete -= OnLevelCompleted;
+        //BrickWallGenerator.OnLevelComplete -= OnLevelCompleted;
     }
 
     private void OnDestroy()
     {
         BricksHandler.OnDetached -= OnBrickDetached;
-        BrickWallGenerator.OnLevelComplete -= OnLevelCompleted;
+        //BrickWallGenerator.OnLevelComplete -= OnLevelCompleted;
     }
 
     private void OnBrickDetached(BricksHandler bricksHandler)

@@ -23,7 +23,7 @@ public class BrickWallGenerator : MonoBehaviour
 
     private GameObject currentWall;
 
-    public static Action OnLevelComplete;
+    public static Action OnWallDestroyed;
     private Coroutine nextPhaseCoroutine;
 
     private void OnEnable()
@@ -173,8 +173,8 @@ public class BrickWallGenerator : MonoBehaviour
         if (columns < 13) columns += 2;
         if (rows < 10) rows += 2;
 
+        OnWallDestroyed?.Invoke();
         GenerateWall();
-        //OnLevelComplete?.Invoke();
     }
 
     private WallPattern GetRandomPattern()

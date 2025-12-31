@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class BricksHandler : MonoBehaviour, IClickable
+public class BricksHandler : MonoBehaviour
 {
     [Header("Impact Settings")]
 

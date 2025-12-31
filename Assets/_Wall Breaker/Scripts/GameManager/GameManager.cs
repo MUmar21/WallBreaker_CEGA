@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     public enum GameStates
     {
         MainMenu,
+        TimerMenu,
         Playing,
         GameOver
     }
@@ -24,14 +25,18 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int gameplayTimeInSeconds = 60;
     [SerializeField] private int scoreAmount = 5;
     [SerializeField] private float gameOverDelay = 3f;
+    [SerializeField] private int timeBonusToAdd = 5;
 
     private int score = 0;
+    private int highScore = 0;
 
     private int remaingTime;
 
     private Coroutine countDownRoutine;
     private Coroutine timerCoroutine;
     private Coroutine gameOverCoroutine;
+
+    private const string HighScoreKey = "HighScore";
 
     private void Awake()
     {
@@ -49,9 +54,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        if (PlayerPrefs.HasKey(HighScoreKey))
+        {
+            highScore = PlayerPrefs.GetInt(HighScoreKey, 0);
+            Debug.Log($"Loaded HighScore : {highScore}");
+        }
+    }
+
     private void OnEnable()
     {
         BricksHandler.AddScoreEvent += AddScore;
+        BrickWallGenerator.OnWallDestroyed += AddBonus;
     }
 
 
@@ -71,12 +86,25 @@ public class GameManager : MonoBehaviour
             case GameStates.MainMenu:
                 Time.timeScale = 0.00001f;
                 break;
+            case GameStates.TimerMenu:
+                Time.timeScale = 0.00001f;
+                break;
             case GameStates.Playing:
                 Time.timeScale = 1;
                 brickWallGenerator.DestroyCurrentWall();
                 StartCountdown();
                 break;
             case GameStates.GameOver:
+
+                if (score > highScore)
+                    highScore = score;
+                Debug.Log($"Game Over! Your Score: {score}, High Score: {highScore}");
+
+                PlayerPrefs.SetInt(HighScoreKey, highScore);
+                PlayerPrefs.Save();
+
+                uiManager.UpdateHighscoreText(highScore);
+
                 score = 0;
                 remaingTime = 0;
                 Time.timeScale = 0.00001f;
@@ -167,6 +195,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void SetGameplayTime(int seconds)
+    {
+        gameplayTimeInSeconds = seconds;
+    }
+
+    public int GetHighScore()
+    {
+        return highScore;
+    }
+
+    private void AddBonus()
+    {
+        remaingTime += timeBonusToAdd;
+        uiManager.UpdateTimerUI(remaingTime);
+    }
+
     private void OnDisable()
     {
         StopAllCoroutines();
@@ -177,5 +221,6 @@ public class GameManager : MonoBehaviour
         StopAllCoroutines();
 
         BricksHandler.AddScoreEvent -= AddScore;
+        BrickWallGenerator.OnWallDestroyed -= AddBonus;
     }
 }

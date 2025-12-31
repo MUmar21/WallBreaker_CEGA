@@ -5,20 +5,47 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    [Header("Texts Ref")]
     [SerializeField] private TMP_Text scoreText;
     [SerializeField] private TMP_Text timerText;
     [SerializeField] private TMP_Text countdownText;
+    [SerializeField] private TMP_Text highScoreText;
+
+    [Header("Menus Ref")]
     [SerializeField] private GameObject startMenu;
+    [SerializeField] private GameObject timeSelectionMenu;
     [SerializeField] private GameObject inGameUI;
     [SerializeField] private GameObject gameOverMenu;
+    [SerializeField] private GameObject instructionMenu;
+
+    [Header("Buttons Ref")]
     [SerializeField] private Button playButton;
     [SerializeField] private Button replayButton;
+    [SerializeField] private Button deleteDataButton;
+    [SerializeField] private Button nextButton;
+
+    private const string HasSeenInstructionKey = "HasSeenInstruction";
+
+    private void Start()
+    {
+        if (PlayerPrefs.HasKey(HasSeenInstructionKey))
+        {
+            instructionMenu.SetActive(false);
+        }
+        else
+        {
+            instructionMenu.SetActive(true);
+        }
+    }
+
 
     private void OnEnable()
     {
         GameManager.Instance.OnGameStateChanged += OnGameStateChanged;
         playButton.onClick.AddListener(OnPlayButton);
         replayButton.onClick.AddListener(OnReplayButton);
+        deleteDataButton.onClick.AddListener(DeleteGameData);
+        nextButton.onClick.AddListener(OnNextButton);
     }
 
     private void OnDisable()
@@ -26,6 +53,8 @@ public class UIManager : MonoBehaviour
         GameManager.Instance.OnGameStateChanged -= OnGameStateChanged;
         playButton.onClick.RemoveListener(OnPlayButton);
         replayButton.onClick.RemoveListener(OnReplayButton);
+        deleteDataButton.onClick.RemoveListener(DeleteGameData);
+        nextButton.onClick.RemoveListener(OnNextButton);
     }
 
     private void OnGameStateChanged(GameManager.GameStates newGameState)
@@ -36,6 +65,9 @@ public class UIManager : MonoBehaviour
         {
             case GameManager.GameStates.MainMenu:
                 startMenu.SetActive(true);
+                break;
+            case GameManager.GameStates.TimerMenu:
+                timeSelectionMenu.SetActive(true);
                 break;
             case GameManager.GameStates.Playing:
                 inGameUI.SetActive(true);
@@ -51,6 +83,7 @@ public class UIManager : MonoBehaviour
     private void DisableAllMenu()
     {
         startMenu.SetActive(false);
+        timeSelectionMenu.SetActive(false);
         inGameUI.SetActive(false);
         gameOverMenu.SetActive(false);
     }
@@ -59,11 +92,28 @@ public class UIManager : MonoBehaviour
     // ==Listeners==
     private void OnPlayButton()
     {
-        GameManager.Instance.ChangeState(GameManager.GameStates.Playing);
+        GameManager.Instance.ChangeState(GameManager.GameStates.TimerMenu);
     }
 
     private void OnReplayButton()
     {
+        GameManager.Instance.ChangeState(GameManager.GameStates.Playing);
+    }
+    private void DeleteGameData()
+    {
+        PlayerPrefs.DeleteAll();
+    }
+
+    private void OnNextButton()
+    {
+        instructionMenu.SetActive(false);
+        PlayerPrefs.SetString(HasSeenInstructionKey, "true");
+        PlayerPrefs.Save();
+    }
+
+    public void SetTimer(int seconds)
+    {
+        GameManager.Instance.SetGameplayTime(seconds);
         GameManager.Instance.ChangeState(GameManager.GameStates.Playing);
     }
 
@@ -98,6 +148,11 @@ public class UIManager : MonoBehaviour
     public void UpdateTimerUI(int seconds)
     {
         timerText.text = FormatedTimer(seconds);
+    }
+
+    public void UpdateHighscoreText(int score)
+    {
+        highScoreText.text = $"High Score: {score}";
     }
 
     private string FormatedTimer(int seconds)
