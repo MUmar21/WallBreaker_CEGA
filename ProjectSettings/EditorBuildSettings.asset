@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/_UmarFeature/Scenes/Gameplay.unity
     guid: 032f14c7a466be2438d6b567a7de198f
   - enabled: 1
-    path: Assets/_UmarFeature/Scenes/GameScene 1.unity
+    path: Assets/_Wall Breaker/Scenes/GameScene.unity
     guid: e89e958db99ef3a48b07d8a1a96fdc7e
   - enabled: 1
     path: Assets/_UmarFeature/Scenes/GameScene 2.unity

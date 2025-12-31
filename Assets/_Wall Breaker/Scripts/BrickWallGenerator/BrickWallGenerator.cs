@@ -1,9 +1,16 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class BrickWallGenerator : MonoBehaviour
 {
+    public enum WallPattern { Solid, Checkerboard, Pyramid, Arch, RandomHoles }
+
+    public WallPattern currentPattern;
+
+    [SerializeField] private WallPattern[] availablePatterns;
+
     [SerializeField] private GameObject brickPrefab;
     [SerializeField] private int rows = 8;
     [SerializeField] private int columns = 10;
@@ -17,7 +24,7 @@ public class BrickWallGenerator : MonoBehaviour
     private GameObject currentWall;
 
     public static Action OnLevelComplete;
-
+    private Coroutine nextPhaseCoroutine;
 
     private void OnEnable()
     {
@@ -47,14 +54,43 @@ public class BrickWallGenerator : MonoBehaviour
         currentWall.transform.position = transform.position;
 
         // Step 3 Nested Loop to Instantiate Bricks
-        for (int row = 0; row < rows; row++)  // Outer Loop for Rows
+        for (int row = 0; row < rows; row++)
         {
-            for (int col = 0; col < columns; col++) // Inner Loop for Columns
+            for (int col = 0; col < columns; col++)
             {
-                SpawnBrick(row, col, offsetX, currentWall.transform);
+                if (ShouldSpawn(row, col))
+                {
+                    SpawnBrick(row, col, offsetX, currentWall.transform);
+                }
             }
         }
 
+    }
+
+    private bool ShouldSpawn(int row, int col)
+    {
+        switch (currentPattern)
+        {
+            case WallPattern.Checkerboard:
+                return (row + col) % 2 == 0;
+
+            case WallPattern.Pyramid:
+                // Calculate how many bricks to skip from the sides based on row height
+                int gap = row;
+                return (col >= gap && col < columns - gap);
+
+            case WallPattern.Arch:
+                // Define a space in the bottom center to leave empty
+                bool isMidCol = col > columns / 3 && col < (columns * 2 / 3);
+                bool isLowRow = row < rows / 2;
+                return !(isMidCol && isLowRow);
+
+            case WallPattern.RandomHoles:
+                return UnityEngine.Random.value > 0.2f;
+
+            default: // Solid Wall
+                return true;
+        }
     }
 
     private void SpawnBrick(int row, int col, float offset, Transform parent)
@@ -95,6 +131,8 @@ public class BrickWallGenerator : MonoBehaviour
         }
     }
 
+
+
     private int GetBrickRecord()
     {
         return bricksRecord.Count;
@@ -116,20 +154,35 @@ public class BrickWallGenerator : MonoBehaviour
             }
         }
 
-        CheckForLevelComplete();
-    }
-
-    private void CheckForLevelComplete()
-    {
         if (GetBrickRecord() == 0)
         {
-            if (columns < 12 && rows < 8)
+            if (nextPhaseCoroutine != null)
             {
-                columns += 2;
-                rows += 2;
+                StopCoroutine(nextPhaseCoroutine);
             }
-            OnLevelComplete?.Invoke();
+            nextPhaseCoroutine = StartCoroutine(NextPhase());
         }
+    }
+
+    private IEnumerator NextPhase()
+    {
+        yield return new WaitForSeconds(2f);
+
+        currentPattern = GetRandomPattern();
+
+        if (columns < 13) columns += 2;
+        if (rows < 10) rows += 2;
+
+        GenerateWall();
+        //OnLevelComplete?.Invoke();
+    }
+
+    private WallPattern GetRandomPattern()
+    {
+        int randomIndex = UnityEngine.Random.Range(0, availablePatterns.Length);
+        WallPattern newPattern = availablePatterns[randomIndex];
+
+        return newPattern;
     }
 
     public void DestroyCurrentWall()
