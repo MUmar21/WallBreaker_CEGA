@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
         MainMenu,
         TimerMenu,
         Playing,
+        Pause,
         GameOver
     }
 
@@ -45,7 +46,6 @@ public class GameManager : MonoBehaviour
             Instance = this;
             instance = Instance;
             Debug.Log($"Active Game Manager Instance: {instance.gameObject.name}");
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -68,7 +68,6 @@ public class GameManager : MonoBehaviour
         BricksHandler.AddScoreEvent += AddScore;
         BrickWallGenerator.OnWallDestroyed += AddBonus;
     }
-
 
     public void ChangeState(GameStates newState)
     {
@@ -93,6 +92,9 @@ public class GameManager : MonoBehaviour
                 Time.timeScale = 1;
                 brickWallGenerator.DestroyCurrentWall();
                 StartCountdown();
+                break;
+            case GameStates.Pause:
+                Time.timeScale = 0.00001f;
                 break;
             case GameStates.GameOver:
 

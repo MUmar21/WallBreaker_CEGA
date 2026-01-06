@@ -1,7 +1,9 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static GameManager;
 
 public class UIManager : MonoBehaviour
 {
@@ -17,12 +19,14 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject inGameUI;
     [SerializeField] private GameObject gameOverMenu;
     [SerializeField] private GameObject instructionMenu;
+    [SerializeField] private GameObject pauseMenu;
 
     [Header("Buttons Ref")]
     [SerializeField] private Button playButton;
     [SerializeField] private Button replayButton;
     [SerializeField] private Button deleteDataButton;
     [SerializeField] private Button nextButton;
+    [SerializeField] private Button pauseButton;
 
     private const string HasSeenInstructionKey = "HasSeenInstruction";
 
@@ -46,6 +50,8 @@ public class UIManager : MonoBehaviour
         replayButton.onClick.AddListener(OnReplayButton);
         deleteDataButton.onClick.AddListener(DeleteGameData);
         nextButton.onClick.AddListener(OnNextButton);
+        pauseButton.onClick.AddListener(OnPause);
+
     }
 
     private void OnDisable()
@@ -55,6 +61,7 @@ public class UIManager : MonoBehaviour
         replayButton.onClick.RemoveListener(OnReplayButton);
         deleteDataButton.onClick.RemoveListener(DeleteGameData);
         nextButton.onClick.RemoveListener(OnNextButton);
+        pauseButton.onClick.AddListener(OnPause);
     }
 
     private void OnGameStateChanged(GameManager.GameStates newGameState)
@@ -72,6 +79,9 @@ public class UIManager : MonoBehaviour
             case GameManager.GameStates.Playing:
                 inGameUI.SetActive(true);
                 break;
+            case GameStates.Pause:
+                pauseMenu.SetActive(true);
+                break;
             case GameManager.GameStates.GameOver:
                 timerText.text = FormatedTimer(0);
                 scoreText.text = $"Score: 0";
@@ -85,6 +95,7 @@ public class UIManager : MonoBehaviour
         startMenu.SetActive(false);
         timeSelectionMenu.SetActive(false);
         inGameUI.SetActive(false);
+        pauseMenu.SetActive(false);
         gameOverMenu.SetActive(false);
     }
 
@@ -102,6 +113,21 @@ public class UIManager : MonoBehaviour
     private void DeleteGameData()
     {
         PlayerPrefs.DeleteAll();
+    }
+    private void OnPause()
+    {
+        GameManager.Instance.ChangeState(GameManager.GameStates.Pause);
+    }
+
+    public void OnResumeButton()
+    {
+        Time.timeScale = 1;
+        OnGameStateChanged(GameStates.Playing);
+    }
+
+    public void OnStartMenu()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     private void OnNextButton()

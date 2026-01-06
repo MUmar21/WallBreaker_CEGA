@@ -66,6 +66,7 @@ public class RayCastController : MonoBehaviour
             IClickable brick = hit.collider.GetComponent<IClickable>();
             if (brick != null)
             {
+                Debug.Log("Detected!!!!!!!!!!!!!");
                 brick.OnClicked(hit.point);
             }
         }
